@@ -12,6 +12,7 @@ const Chat = () => {
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<string[]>([]);
   const [newMessage, setNewMessage] = useState<string>("");
+  const [newChatAddress, setNewChatAddress] = useState<string>("");
 
   useEffect(() => {
     if (!xmtp) return;
@@ -47,6 +48,24 @@ const Chat = () => {
     setNewMessage("");
   };
 
+  const startNewChat = async () => {
+    if (!newChatAddress.trim()) return;
+  
+    if (!xmtp) {
+      console.error("XMTP client is not initialized");
+      return;
+    }
+  
+    try {
+      const conversation = await xmtp.conversations.newConversation(newChatAddress.trim());
+      setConversations([...conversations, conversation]);
+      setSelectedConversation(conversation);
+      setNewChatAddress("");
+    } catch (error) {
+      console.error("Failed to start a new chat", error);
+    }
+  };
+    
   return (
     <>
       {walletAddress ? (
@@ -54,6 +73,23 @@ const Chat = () => {
           {/* Sidebar */}
           <div className="w-1/3 bg-gray-800 text-white p-4 overflow-y-auto">
             <w3m-button />
+                 {/* New Chat */}
+                 <div className="mt-6">
+              <h3 className="text-xl font-bold mb-2">Start a New Chat</h3>
+              <input
+                type="text"
+                className="w-full p-2 mb-2 rounded-lg text-black"
+                value={newChatAddress}
+                onChange={(e) => setNewChatAddress(e.target.value)}
+                placeholder="Enter wallet address..."
+              />
+              <button
+                onClick={startNewChat}
+                className="w-full bg-blue-500 text-white p-2 rounded-lg"
+              >
+                Start Chat
+              </button>
+            </div>
             <h2 className="text-2xl font-bold mb-4">Conversations</h2>
             {conversations.map((conv, index) => (
               <div
